@@ -44,17 +44,22 @@ class SecondConnection(Protocol):
 		if isinstance(data[0], list):
 			# set up players 1 positions on board
 			# if a Square has a value 0, that spot is empty
+			piece_count = 0
 			for i in range(player_height):
 				for j in range(board_width):
 					if (data[i][j]!=0):
 						self.mainconnection.board[player_height-1-i][board_width-1-j] = Square(data[i][j],2)
-						self.initplayer = True
-						if self.mainconnection.initplayer == True:
-							self.mainconnection.startGame()
+						piece_count += 1
+						if piece_count == 10:
+							self.initplayer = True
 			self.mainconnection.printBoard()
+			if self.initplayer and self.mainconnection.initplayer == True:
+				self.mainconnection.startGame()
+
 		elif type(data[0]) is tuple:
 			if self.mainconnection.board[data[1][0]][data[1][1]].player == 1:
 				fight_status = self.mainconnection.fight(data[0],data[1])
+				print fight_status
 			else:
 				self.mainconnection.board[data[1][0]][data[1][1]] = self.mainconnection.board[data[0][0]][data[0][1]]
 				self.mainconnection.board[data[0][0]][data[0][1]] = Square()
@@ -104,20 +109,26 @@ class MainConnection(Protocol):
 		if isinstance(data[0], list):
 			# set up players 1 positions on board
 			# if a Square has a value 0, that spot is empty
+			piece_count = 0
 			for i in range(player_height):
 				for j in range(board_width):
 					if (data[i][j]!=0):
 						self.board[i+board_height-player_height][j] = Square(data[i][j],1)
+						piece_count += 1
+						if piece_count == 10:
+							self.initplayer = True
 						self.initplayer = True
-						if hasattr(self,'secondplayer'):
-							if self.secondplayer.initplayer == True:
-								self.startGame()
 			self.printBoard()
+			if hasattr(self,'secondplayer'):
+				if self.secondplayer.initplayer == True and self.initplayer == True:
+					self.startGame()
 		elif type(data[0]) is tuple:
 			#self.secondplayer.transport.write("turn")
 			# check if there is a collision between the two players
+			print "data", data
 			if self.board[data[1][0]][data[1][1]].player == 2:
 				fight_status = self.fight(data[0],data[1])
+				print fight_status
 			else:
 				# just a regular move
 				print data
@@ -141,17 +152,19 @@ class MainConnection(Protocol):
 	def fight(self, attacker, defender):
 		attacking_value = self.board[attacker[0]][attacker[1]].value
 		defending_value = self.board[defender[0]][defender[1]].value
+		print "values", attacking_value, defending_value
 		# deal with special cases
 		# if attacker is a spy and defender is a marshall 
 		if defending_value == 'f':
 			print "END OF GAME"
-		elif attacking_value == 's' and defending_value == 1:
+			reactor.stop()
+		elif attacking_value == 's' and defending_value == "1":
 			self.board[defender[0]][defender[1]] = self.board[attacker[0]][attacker[1]]
 			self.board[attacker[0]][attacker[1]] = Square()
 			return "win" # attacker wins
 		elif defending_value == 'b':
 			# the defense is a bomb
-			if attacking_value == 8:
+			if attacking_value == "8":
 				self.board[defender[0]][defender[1]] = self.board[attacker[0]][attacker[1]]
 				self.board[attacker[0]][attacker[1]] = Square()
 				return "win" # attacker diffuses bomb and wins fight
@@ -162,6 +175,9 @@ class MainConnection(Protocol):
 			defending_value = 10
 		elif attacking_value == 's':
 			attacking_value = 10
+
+		attacking_value = int(attacking_value)
+		defending_value = int(defending_value)
 
 		if attacking_value < defending_value:
 			# attacker wins
@@ -180,9 +196,10 @@ class MainConnection(Protocol):
 	def startGame(self):
 		self.turn = 1 # keep track of which players turn it is
 		# send starting board to both players
+		self.printBoard()
 		pickle_board = pickle.dumps(self.board)
-		self.transport.write(pickle_board)
 		self.secondplayer.transport.write(pickle_board)
+		self.transport.write(pickle_board)
 		self.transport.write('turn')
 
 	# use for debugging print board

@@ -29,35 +29,40 @@ def getCurrent(pieces):
 	return None
 
 class Board(pygame.sprite.Sprite):
-	def __init__(self, x, y, src):
+	def __init__(self, x, y, src, player, gs):
 		self.grid = [ [ 0 for i in range(y) ] for j in range(x) ]
 		self.setup = True
 		self.image = pygame.image.load(src)
 		self.original = self.image
 		self.rect = self.image.get_rect()
 		self.rect.center = (400, 400)
+		self.player = player
+		self.gs = gs
+		colour = "red"
+		if self.player == 2:
+			colour = "blue"
 
 		self.pieces = []
 
-		pieceF = Piece(40, 760, "pieces/f.png", 'f', self)
+		pieceF = Piece(40, 760, "pieces/F"+colour+".png", 'f', self)
 		self.pieces.append(pieceF)
-		pieceS = Piece(120, 760, "pieces/s.png", 's', self)
+		pieceS = Piece(120, 760, "pieces/S"+colour+".png", 's', self)
 		self.pieces.append(pieceS)
-		piece9a = Piece(200, 760, "pieces/9.png", '9', self)
+		piece9a = Piece(200, 760, "pieces/9"+colour+".png", '9', self)
 		self.pieces.append(piece9a)
-		piece9b = Piece(280, 760, "pieces/9.png", '9', self)
+		piece9b = Piece(280, 760, "pieces/9"+colour+".png", '9', self)
 		self.pieces.append(piece9b)
-		piece8a = Piece(360, 760, "pieces/8.png", '8', self)
+		piece8a = Piece(360, 760, "pieces/8"+colour+".png", '8', self)
 		self.pieces.append(piece8a)
-		piece8b = Piece(440, 760, "pieces/8.png", '8', self)
+		piece8b = Piece(440, 760, "pieces/8"+colour+".png", '8', self)
 		self.pieces.append(piece8b)
-		piece2 = Piece(520, 760, "pieces/2.png", '2', self)
+		piece2 = Piece(520, 760, "pieces/2"+colour+".png", '2', self)
 		self.pieces.append(piece2)
-		piece1 = Piece(600, 760, "pieces/1.png", '1', self)
+		piece1 = Piece(600, 760, "pieces/1"+colour+".png", '1', self)
 		self.pieces.append(piece1)
-		pieceBa = Piece(680, 760, "pieces/b.png", 'b', self)
+		pieceBa = Piece(680, 760, "pieces/B"+colour+".png", 'b', self)
 		self.pieces.append(pieceBa)
-		pieceBb = Piece(760, 760, "pieces/b.png", 'b', self)
+		pieceBb = Piece(760, 760, "pieces/B"+colour+".png", 'b', self)
 		self.pieces.append(pieceBb)
 
 	def checkMove(self, movePiece):
@@ -89,7 +94,31 @@ class Board(pygame.sprite.Sprite):
 		else:
 			return False
 
-
+	def setUpOpponent(self):
+		# load opponent pieces
+		self.opponentpieces = []
+		yLoc = 0
+		for row in self.grid:
+			yLoc += 1
+			xLoc = 0
+			for spot in row:
+				xLoc += 1
+				if spot.player == 2 and self.player == 1:
+					print spot.value, xLoc, yLoc
+					opponent = Piece(xLoc*80+40, yLoc*80+40, "pieces/BLANKblue.png", 'f', self)
+					self.opponentpieces.append(opponent)
+				elif self.player == 2 and spot.player == 1:
+					print spot.value, xLoc, yLoc
+					opponent = Piece(xLoc*80+40, yLoc*80+40, "pieces/BLANKred.png", 'f', self)
+					self.opponentpieces.append(opponent)
+		# check if any pieces have been removed
+		i = 0
+		for piece in self.pieces:
+			# use board coordinates to get the Square
+			spot = self.grid[piece.yLoc-1][piece.xLoc-1]
+			if spot.player != self.player or (spot.player == self.player and spot.value != piece.name):
+				self.pieces.pop(i)
+			i += 1
 
 class Piece(pygame.sprite.Sprite):
 	def __init__(self, x, y, src, name, board):
@@ -106,7 +135,23 @@ class Piece(pygame.sprite.Sprite):
 		self.board = board
 
 	def move(self, x, y):
-		self.rect.center = (x, y)
+		self.rect.center = (x*80+40, y*80+40)
+
+	def revealImage(self):
+		colour = "red"
+		value = self.board.grid[self.yLoc-1][self.xLoc-1].value
+		print 'value ', value
+		if self.board.player == 1:
+			colour = "blue"
+		if value == 'f':
+			value = "F"
+		elif value == 'b':
+			value = "B"
+		elif value == 's':
+			value = "S"
+		image_src = "pieces/"+value+colour+".png"
+		self.image = pygame.image.load(image_src)
+		print image_src
 
 	def drop(self, init=True):
 		self.xCoor, self.yCoor = self.rect.center
@@ -197,7 +242,17 @@ class Piece(pygame.sprite.Sprite):
 			return False
 		elif new_pos_player != 0:
 			# we want to show the player
-			pass
+			for piece in self.board.opponentpieces:
+				if piece.xLoc == self.xLoc and piece.yLoc == self.yLoc:
+					piece.revealImage()
+					# if the image is being changed the board images should be refreshed
+					self.board.gs.screen.fill(self.board.gs.black)
+					self.board.gs.screen.blit(self.board.image, self.board.rect)
+					for piece in self.board.pieces:
+						self.board.gs.screen.blit(piece.image, piece.rect)
+					for piece in self.board.opponentpieces:
+						self.board.gs.screen.blit(piece.image, piece.rect)
+					pygame.display.flip()
 		return True
 
 	def get_coordinates(self):
@@ -223,7 +278,7 @@ class StartButton(pygame.sprite.Sprite):
 
 class GameSpace(object):
 	
-	def setup(self):
+	def __init__(self, player):
 		# 1 - basic initialization
 		pygame.init()
 		self.size = self.width, self.heigth = 800, 800
@@ -231,13 +286,15 @@ class GameSpace(object):
 
 		self.screen = pygame.display.set_mode(self.size)
 
-		self.board = Board(10, 10, "boardV3.png")
+		self.player = player
+		self.board = Board(10, 10, "boardV3.png", self.player, self)
 		self.startbutton = StartButton()
 		self.showstart = False
 
 		# 2 - set up game objects
 		self.clock = pygame.time.Clock()
 
+	def playerSetup(self):
 		# 3 - start game loop
 		while 1:
 			# 4 - clock tick regulation (framerate)
@@ -316,11 +373,13 @@ class GameSpace(object):
 			self.screen.blit(self.board.image, self.board.rect)
 			for piece in self.board.pieces:
 				self.screen.blit(piece.image, piece.rect)
+			for piece in self.board.opponentpieces:
+				self.screen.blit(piece.image, piece.rect)
 			pygame.display.flip()
 
 	def updateBoard(self, board):
 		self.board.grid = board
-
+		self.board.setUpOpponent()
 
 if __name__ == '__main__':
 	pass

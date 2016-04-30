@@ -25,8 +25,8 @@ class PlayerConnection(Protocol):
 	def connectionMade(self):
 		print "player 1 connected"
 		#self.initboard = [[i for i in range(8)] for j in range(3)]
-		self.gs = GameSpace()
-		self.initboard = self.gs.setup()
+		self.gs = GameSpace(1)
+		self.initboard = self.gs.playerSetup()
 		pd = pickle.dumps(self.initboard)
 		self.transport.write(pd)
 		self.turn = 0
@@ -40,13 +40,14 @@ class PlayerConnection(Protocol):
 		# if Square is in the data, we know that the board is being sent in
 		if "Square" in data:
 			self.board = pickle.loads(data)
-			#self.updateBoard()
+			self.printBoard()
 			self.gs.updateBoard(self.board)
 
 		# after updating the board, if turn has been sent allow player to submit next move
 		if change_turn == True:
 			self.turn = 1
 			print "make move"
+			#self.gs.updateBoard(self.board,1)
 			coordinates = self.gs.main()
 			print coordinates[0], coordinates[1]
 			print "move over"
