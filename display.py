@@ -106,7 +106,7 @@ class Piece(pygame.sprite.Sprite):
 		self.board = board
 
 	def move(self, x, y):
-		self.rect.center = (x, y)
+		self.rect.center = (x*80+40, y*80+40)
 
 	def drop(self, init=True):
 		self.xCoor, self.yCoor = self.rect.center
@@ -195,7 +195,7 @@ class StartButton(pygame.sprite.Sprite):
 
 class GameSpace(object):
 	
-	def setup(self):
+	def __init__(self):
 		# 1 - basic initialization
 		pygame.init()
 		self.size = self.width, self.heigth = 800, 800
@@ -210,6 +210,7 @@ class GameSpace(object):
 		# 2 - set up game objects
 		self.clock = pygame.time.Clock()
 
+	def playerSetup(self):
 		# 3 - start game loop
 		while 1:
 			# 4 - clock tick regulation (framerate)
@@ -291,7 +292,19 @@ class GameSpace(object):
 			pygame.display.flip()
 
 	def updateBoard(self, board):
-		self.board.grid = board
+		#self.board.grid = board
+		yLoc = 0
+		for row in board:
+			yLoc += 1
+			xLoc = 0
+			for spot in row:
+				xLoc +=1
+				if spot != 0:
+					for piece in self.board.pieces:
+						if piece.name == spot:
+							print yLoc , xLoc
+							piece.move(yLoc, xLoc)
+
 
 
 if __name__ == '__main__':

@@ -26,7 +26,7 @@ class PlayerConnection(Protocol):
 		print "player 1 connected"
 		#self.initboard = [[i for i in range(8)] for j in range(3)]
 		self.gs = GameSpace()
-		self.initboard = self.gs.setup()
+		self.initboard = self.gs.playerSetup()
 		pd = pickle.dumps(self.initboard)
 		self.transport.write(pd)
 		self.turn = 0
