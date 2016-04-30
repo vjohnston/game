@@ -192,6 +192,7 @@ class MainConnection(Protocol):
 
 	def connectionLost(self, reason):
 		print "gameserver connection lost"
+
 	
 class MainConnectionFactory(Factory):
 	def buildProtocol(self, addr):
