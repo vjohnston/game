@@ -11,8 +11,10 @@ PLAYER_TWO_PORT = 32016
 
 class PlayerConnection(Protocol):
 	def connectionMade(self):
-		print "player 1 connected"
-		
+		print "player connected"
+
+	def dataReceived(self, data):
+		print 'received data:' , data		
 	
 class PlayerConnectionFactory(Factory):
 	def buildProtocol(self, addr):
@@ -20,4 +22,5 @@ class PlayerConnectionFactory(Factory):
 
 if __name__ == '__main__':
 	reactor.listenTCP(PLAYER_ONE_PORT, PlayerConnectionFactory())
+	reactor.listenTCP(PLAYER_TWO_PORT, PlayerConnectionFactory())
 	reactor.run()
