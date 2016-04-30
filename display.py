@@ -117,6 +117,9 @@ class Piece(pygame.sprite.Sprite):
 		self.xLoc = self.xCoor/80
 		self.yLoc = self.yCoor/80
 
+		print "2old: ", self.xLocPrev, self.yLocPrev
+		print "2new: ", self.xLoc, self.yLoc
+
 		#print "Coordinates:" , self.xCoor, self.yCoor, self.xLoc, self.yLoc
 		if init == True and self.board.checkMove(self):
 			self.rect.center = (self.xCoor, self.yCoor)			
@@ -125,49 +128,74 @@ class Piece(pygame.sprite.Sprite):
 			self.xCoorPrev = self.xCoor
 			self.yCoorPrev = self.yCoor
 		elif init == False and self.checkValid():
-			self.rect.center = (self.xCoor, self.yCoor)			
-			self.board.grid[self.yLocPrev][self.xLocPrev] = Square
-			self.board.grid[self.yLoc][self.xLoc] = Square(self.name,1)
+			print "in"
+			self.rect.center = (self.xCoor, self.yCoor)	
 			self.xCoorPrev = self.xCoor
 			self.yCoorPrev = self.yCoor
+			return True
 		else:
+			self.xLoc = self.xLocPrev
+			self.yLoc = self.yLocPrev
 			self.rect.center = (self.xCoorPrev, self.yCoorPrev)
 		
-		#print self.checkFull()
-
-		#print self.board.grid[6]
-		#print self.board.grid[7]
-		#print self.board.grid[8]
-		#print
-		#board[self.x][self.y] = self.name
-		#print board
-		#print self.name , self.x , self.y
+		print "3old: ", self.xLocPrev, self.yLocPrev
+		print "3new: ", self.xLoc, self.yLoc
+		return False
 
 	def checkValid(self):
 		print self.xLocPrev, self.yLocPrev
+		piecetype =  self.board.grid[self.yLocPrev-1][self.xLocPrev-1].value
+		# bombs and flags cannot move
+		if piecetype == 'b' or piecetype == 'f':
+			return False
+		# make sure not the same square
+		if abs(self.xLoc-self.xLocPrev)==0 and abs(self.yLoc-self.yLocPrev)==0:
+			return False
+		# make sure newposition is not in the lake
+		if (self.xLoc == 3 and self.yLoc == 5) or (self.xLoc == 3 and self.yLoc == 4) or (self.xLoc == 6 and self.yLoc == 5) or (self.xLoc == 6 and self.yLoc == 4):
+			return False
 		# make sure there is a Square there
-		if self.board.grid[self.xLocPrev][self.yLocPrev].value == 0:
+		if self.board.grid[self.yLocPrev-1][self.xLocPrev-1].value == "0":
 			#self.xLoc = self.xLocPrev
 			#self.yLoc = self.yLocPrev
 			return False
 		# check the bounds of the new position
-		if (self.xLoc < 0 or self.xLoc > 7 or self.yLoc < 0 or self.yLoc > 7):
+		if (self.xLoc < 1 or self.xLoc > 8 or self.yLoc < 1 or self.yLoc > 8):
 			#self.xLoc = self.xLocPrev
 			#self.yLoc = self.yLocPrev
 			return False
 		# make sure it only moved by one position
-		if self.board.grid[self.xLocPrev][self.yLocPrev].value != 9:
-			if not ((abs(self.xLoc-self.xLocPrev)==1 and abs(self.yLoc-self.yLocPrev)==0)) or ((abs(self.xLoc-self.xLocPrev)==0 and abs(self.yLoc-self.yLocPrev)==1)):
-				#self.xLoc = self.xLocPrev
-				#self.yLoc = self.yLocPrev
+		print self.xLocPrev, self.yLocPrev, self.xLoc, self.yLoc
+		print self.board.grid[self.yLocPrev-1][self.xLocPrev-1].value
+		if self.board.grid[self.yLocPrev-1][self.xLocPrev-1].value != "9":
+			if abs(self.xLoc-self.xLocPrev) + abs(self.yLoc-self.yLocPrev) != 1:
+				print "moved by more than one"
 				return False
+		else:
+			print "number 9"
+			# check if 9 is moving in a straight line
+			if abs(self.xLoc-self.xLocPrev)==0 or abs(self.yLoc-self.yLocPrev)==0:
+				# the x value stays the same
+				if abs(self.xLoc-self.xLocPrev)==0:
+					if (self.xLoc == 3 or self.xLoc == 6) and ((self.yLoc > 5 and self.yLocPrev < 4) or (self.yLocPrev > 5 and self.yLoc < 4)):
+						return False
+				# the y value stays the same
+				else:
+					if (self.yLoc == 5 or self.yLoc == 4) and ((((self.xLoc > 3 and self.xLoc < 6) or self.xLoc > 6) and self.xLocPrev < 3) or ((self.xLocPrev > 3 and self.xLocPrev < 6) and self.xLoc > 6) or (((self.xLocPrev > 3 and self.xLocPrev < 6) or self.xLocPrev > 6) and self.xLoc < 3) or ((self.xLoc > 3 and self.xLoc < 6) and self.xLocPrev > 6)):
+						return False
+			else:
+				print "not 1 direction"
+				return False
+		print "moved by 1"
 		# check if a Square is already in that position
-		new_pos_player = self.board.grid[self.xLoc][self.yLoc].player
-		if new_pos_player == 1:
+		old_pos_player = self.board.grid[self.yLocPrev-1][self.xLocPrev-1].player
+		new_pos_player = self.board.grid[self.yLoc-1][self.xLoc-1].player
+		print "player", self.board.grid[self.yLoc-1][self.xLoc-1].player
+		if new_pos_player == old_pos_player:
 			#self.xLoc = self.xLocPrev
 			#self.yLoc = self.yLocPrev
 			return False
-		elif new_pos_player == 2:
+		elif new_pos_player != 0:
 			# we want to show the player
 			pass
 		return True
@@ -274,9 +302,9 @@ class GameSpace(object):
 					print "hi"
 					if self.currentPiece:
 						self.currentPiece.move = False
-						self.currentPiece.drop(False)
-						print "hi2"
-						return self.currentPiece.get_coordinates()
+						if self.currentPiece.drop(False) == True:
+							print "hi2"
+							return self.currentPiece.get_coordinates()
 				if event.type == QUIT:
 					sys.exit()
 
