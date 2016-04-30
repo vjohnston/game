@@ -61,7 +61,7 @@ class SecondConnection(Protocol):
 			board_string = pickle.dumps(self.mainconnection.board)
 			self.transport.write(board_string)
 			self.mainconnection.transport.write(board_string)
-			self.transport.write('turn')
+			self.mainconnection.transport.write('turn')
 			# change turn
 			#self.mainconnection.transport.getHandle().sendall("turn")
 			print "end of player 2 turn"
@@ -112,19 +112,21 @@ class MainConnection(Protocol):
 						if hasattr(self,'secondplayer'):
 							if self.secondplayer.initplayer == True:
 								self.startGame()
-			# TEST CASE
-			self.board[4][3] = Square(1,2)
-			self.board[5][3] = Square(3,1)
 			self.printBoard()
 		elif type(data[0]) is tuple:
-			self.secondplayer.transport.write("turn")
+			#self.secondplayer.transport.write("turn")
 			# check if there is a collision between the two players
 			if self.board[data[1][0]][data[1][1]].player == 2:
 				fight_status = self.fight(data[0],data[1])
 			else:
 				# just a regular move
+				print data
+				self.printBoard()
 				self.board[data[1][0]][data[1][1]] = self.board[data[0][0]][data[0][1]]
 				self.board[data[0][0]][data[0][1]] = Square()
+				print
+				self.printBoard()
+				print
 			# update the board for both player
 			board_string = pickle.dumps(self.board)
 			self.secondplayer.transport.write(board_string)

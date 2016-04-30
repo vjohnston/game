@@ -1,9 +1,9 @@
 # player 2 file
-<<<<<<< HEAD
 from twisted.internet import reactor
 from twisted.internet.protocol import Protocol
 from twisted.internet.protocol import ClientFactory
 import cPickle as pickle
+from display import GameSpace
 
 PLAYER_TWO_PORT = 32016
 
@@ -24,8 +24,10 @@ class Square:
 class PlayerConnection(Protocol):
 	def connectionMade(self):
 		print "player 1 connected"
-		self.board = [[i for i in range(8)] for j in range(3)]
-		pd = pickle.dumps(self.board)
+		#self.board = [[i for i in range(8)] for j in range(3)]
+		self.gs = GameSpace()
+		self.initboard = self.gs.setup()
+		pd = pickle.dumps(self.initboard)
 		self.transport.write(pd)
 		self.turn = 0
 
@@ -42,52 +44,25 @@ class PlayerConnection(Protocol):
 			self.rotboard = pickle.loads(data)
 			# make sure the board is rotated for player2
 			self.board = list(reversed(zip(*list(reversed(zip(*self.rotboard))))))
-			self.updateBoard()
+			self.printBoard()
+			self.gs.updateBoard(self.board)
 
 		# after updating the board, if turn has been sent allow player to submit next move
 		if change_turn == True:
 			self.turn = 1
-			old, new = self.getMove()
-			if (self.checkValid(old,new)):
-				rot_old = (7-old[0],7-old[1])
-				rot_new = (7-new[0],7-new[1])
-				self.submitMove(rot_old,rot_new)
+			print "make move"
+			rot_coordinates = self.gs.main()
+			rot_old = (7-rot_coordinates[0][0],7-rot_coordinates[0][1])
+			rot_new = (7-rot_coordinates[1][0],7-rot_coordinates[1][1])
+			coordinates = [rot_old,rot_new]
+			print rot_old, rot_new
+			print "move over"
+			self.submitMove(coordinates)
 
-	def updateBoard(self):
-		
-		self.printBoard()
-		pass
-
-	def getMove(self):
-		old = (3,4)
-		new = (2,4)
-		return old, new
-
-	def submitMove(self, old, new):
-		data = [old,new]
-		pd = pickle.dumps(data)
+	def submitMove(self, coordinates):
+		pd = pickle.dumps(coordinates)
 		self.transport.write(pd)
 		self.turn = 0
-
-	def checkValid(self, old_pos, new_pos):
-		# make sure there is a Square there
-		if self.board[old_pos[0]][old_pos[1]].value == 0:
-			return False
-		# check the bounds of the new position
-		if (new_pos[0] < 0 or new_pos[0] > 7 or new_pos[1] < 0 or new_pos[1] > 7):
-			return False
-		# make sure it only moved by one position
-		if self.board[old_pos[0]][old_pos[1]].value != 9:
-			if not (abs(new_pos[0]-old_pos[0])==1 and abs(new_pos[1]-old_pos[1])==0) or (abs(new_pos[0]-old_pos[0])==0 and abs(new_pos[1]-old_pos[1])==1):
-				return False
-		# check if a Square is already in that position
-		new_pos_player = self.board[new_pos[0]][new_pos[1]].player
-		if new_pos_player == 1:
-			return False
-		elif new_pos_player == 2:
-			# we want to show the player
-			pass
-		return True
 
 	def connectionLost(self, reason):
 		print "player 2 connection lost"
