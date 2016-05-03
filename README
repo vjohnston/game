@@ -1,0 +1,18 @@
+Mitchell Patin
+Victoria Johnston
+CSE30332 - McMillan
+Spring 2016 
+
+Overview of Game:
+
+
+How to Setup:
+ 1. Start Gameserver
+   [student00]$ python gameserver.py
+ 2. Start Player1
+   [student01]$ python player1.py
+ 3. Start Player2
+   [student02]$ python player2.py
+
+
+How to Play:

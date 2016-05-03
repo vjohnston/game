@@ -287,7 +287,7 @@ class GameSpace(object):
 		self.screen = pygame.display.set_mode(self.size)
 
 		self.player = player
-		self.board = Board(10, 10, "boardV3.png", self.player, self)
+		self.board = Board(10, 10, "boardV5.png", self.player, self)
 		self.startbutton = StartButton()
 		self.showstart = False
 
