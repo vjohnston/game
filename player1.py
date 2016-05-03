@@ -30,6 +30,7 @@ class PlayerConnection(Protocol):
 		pd = pickle.dumps(self.initboard)
 		self.transport.write(pd)
 		self.turn = 0
+		#self.gs.waitingForOpponent()
 
 	def dataReceived(self, data):
 		# check if turn is sent
@@ -37,21 +38,28 @@ class PlayerConnection(Protocol):
 		if "turn" in data:
 			change_turn = True
 			data = data.replace("turn","")
-		# if Square is in the data, we know that the board is being sent in
-		if "Square" in data:
-			self.board = pickle.loads(data)
-			self.printBoard()
-			self.gs.updateBoard(self.board)
+		if "win" in data:
+			print "WIN"
+			self.gs.end("winner")
+		elif "lose" in data:
+			print "LOSE"
+			self.gs.end("loser")
+		else:
+			# if Square is in the data, we know that the board is being sent in
+			if "Square" in data:
+				self.board = pickle.loads(data)
+				self.printBoard()
+				self.gs.updateBoard(self.board)
 
-		# after updating the board, if turn has been sent allow player to submit next move
-		if change_turn == True:
-			self.turn = 1
-			print "make move"
-			#self.gs.updateBoard(self.board,1)
-			coordinates = self.gs.main()
-			print coordinates[0], coordinates[1]
-			print "move over"
-			self.submitMove(coordinates)
+			# after updating the board, if turn has been sent allow player to submit next move
+			if change_turn == True:
+				self.turn = 1
+				print "make move"
+				#self.gs.updateBoard(self.board,1)
+				coordinates = self.gs.main()
+				print coordinates[0], coordinates[1]
+				print "move over"
+				self.submitMove(coordinates)
 		
 	def submitMove(self, coordinates):
 		pd = pickle.dumps(coordinates)

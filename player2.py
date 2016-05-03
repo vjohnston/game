@@ -27,9 +27,11 @@ class PlayerConnection(Protocol):
 		#self.board = [[i for i in range(8)] for j in range(3)]
 		self.gs = GameSpace(2)
 		self.initboard = self.gs.playerSetup()
+		print self.initboard
 		pd = pickle.dumps(self.initboard)
 		self.transport.write(pd)
 		self.turn = 0
+		#self.gs.waitingForOpponent()
 
 	def dataReceived(self, data):
 		# check if turn is sent
@@ -38,26 +40,33 @@ class PlayerConnection(Protocol):
 			print "player 2 turn"
 			change_turn = True
 			data = data.replace("turn","")
-		# if Square is in the data, we know that the board is being sent in
-		if "Square" in data:
-			print "update board"
-			self.rotboard = pickle.loads(data)
-			# make sure the board is rotated for player2
-			self.board = list(reversed(zip(*list(reversed(zip(*self.rotboard))))))
-			self.printBoard()
-			self.gs.updateBoard(self.board)
+		if "win" in data:
+			print "WIN"
+			self.gs.end("winner")
+		elif "lose" in data:
+			print "LOSE"
+			self.gs.end("loser")
+		else:
+			# if Square is in the data, we know that the board is being sent in
+			if "Square" in data:
+				print "update board"
+				self.rotboard = pickle.loads(data)
+				# make sure the board is rotated for player2
+				self.board = list(reversed(zip(*list(reversed(zip(*self.rotboard))))))
+				self.printBoard()
+				self.gs.updateBoard(self.board)
 
-		# after updating the board, if turn has been sent allow player to submit next move
-		if change_turn == True:
-			self.turn = 1
-			print "make move"
-			rot_coordinates = self.gs.main()
-			rot_old = (7-rot_coordinates[0][0],7-rot_coordinates[0][1])
-			rot_new = (7-rot_coordinates[1][0],7-rot_coordinates[1][1])
-			coordinates = [rot_old,rot_new]
-			print rot_old, rot_new
-			print "move over"
-			self.submitMove(coordinates)
+			# after updating the board, if turn has been sent allow player to submit next move
+			if change_turn == True:
+				self.turn = 1
+				print "make move"
+				rot_coordinates = self.gs.main()
+				rot_old = (7-rot_coordinates[0][0],7-rot_coordinates[0][1])
+				rot_new = (7-rot_coordinates[1][0],7-rot_coordinates[1][1])
+				coordinates = [rot_old,rot_new]
+				print rot_old, rot_new
+				print "move over"
+				self.submitMove(coordinates)
 
 	def submitMove(self, coordinates):
 		pd = pickle.dumps(coordinates)

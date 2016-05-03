@@ -224,10 +224,38 @@ class Piece(pygame.sprite.Sprite):
 				if abs(self.xLoc-self.xLocPrev)==0:
 					if (self.xLoc == 3 or self.xLoc == 6) and ((self.yLoc > 5 and self.yLocPrev < 4) or (self.yLocPrev > 5 and self.yLoc < 4)):
 						return False
+					if self.yLoc > self.yLocPrev:
+						print "x1", self.xLoc-1, self.yLocPrev, self.yLoc-2
+						if self.yLocPrev != self.yLoc-1:
+							for row in self.board.grid[self.yLocPrev:self.yLoc-1]:
+								space = row[self.xLoc-1]
+								if space.player != 0:
+									return False
+					elif self.yLoc < self.yLocPrev:
+						print "x2", self.xLoc-1, self.yLoc, self.yLocPrev-1
+						if self.yLoc != self.yLocPrev-1:
+							for row in self.board.grid[self.yLoc:self.yLocPrev-1]:
+								space = row[self.xLoc-1]
+								print space.value
+								if space.player != 0:
+									return False
 				# the y value stays the same
 				else:
 					if (self.yLoc == 5 or self.yLoc == 4) and ((((self.xLoc > 3 and self.xLoc < 6) or self.xLoc > 6) and self.xLocPrev < 3) or ((self.xLocPrev > 3 and self.xLocPrev < 6) and self.xLoc > 6) or (((self.xLocPrev > 3 and self.xLocPrev < 6) or self.xLocPrev > 6) and self.xLoc < 3) or ((self.xLoc > 3 and self.xLoc < 6) and self.xLocPrev > 6)):
 						return False
+					if self.xLoc > self.xLocPrev:
+						print "y1", self.yLoc-1, self.xLocPrev, self.xLoc-2
+						if self.xLoc-1 != self.xLocPrev:
+							for space in self.board.grid[self.yLoc-1][self.xLocPrev:self.xLoc-1]:
+								print "spot", space.player, space.value
+								if space.player != 0:
+									return False
+					elif self.xLoc < self.xLocPrev:
+						print "y2", self.yLoc-1, self.xLoc, self.xLocPrev-2
+						if self.xLocPrev-1 != self.xLoc:
+							for space in self.board.grid[self.yLoc-1][self.xLoc:self.xLocPrev-1]:
+								if space.player != 0:
+									return False
 			else:
 				print "not 1 direction"
 				return False
@@ -266,7 +294,7 @@ class Piece(pygame.sprite.Sprite):
 
 class StartButton(pygame.sprite.Sprite):
 	def __init__(self):
-		self.image = pygame.image.load("start.png")
+		self.image = pygame.image.load("ready.png")
 		self.rect = self.image.get_rect()
 		self.rect.center = (400, 400)
 
@@ -293,6 +321,7 @@ class GameSpace(object):
 
 		# 2 - set up game objects
 		self.clock = pygame.time.Clock()
+		self.waiting = False
 
 	def playerSetup(self):
 		# 3 - start game loop
@@ -316,16 +345,17 @@ class GameSpace(object):
 					self.currentPiece = getCurrent(self.board.pieces)
 					if self.currentPiece:
 						self.currentPiece.move = True
-					if self.showstart == True and self.startbutton.checkClick():
-						self.finalboard = []
-						for row in self.board.grid[6:9]:
-							self.finalboard.append(row[1:9])
-						return self.finalboard
 
 				if event.type == MOUSEBUTTONUP:
 					if self.currentPiece:
 						self.currentPiece.move = False
 						self.currentPiece.drop()
+					if self.showstart == True and self.startbutton.checkClick():
+						self.finalboard = []
+						for row in self.board.grid[6:9]:
+							self.finalboard.append(row[1:9])
+						self.waiting = True
+						return self.finalboard
 				if event.type == QUIT:
 					sys.exit()
 
@@ -342,7 +372,21 @@ class GameSpace(object):
 				self.screen.blit(self.startbutton.image,self.startbutton.rect)
 			pygame.display.flip()
 
+	def waitingForOpponent(self):
+		while self.waiting == True:
+			self.clock.tick(60)
+			for event in pygame.event.get():
+				if event.type == QUIT:
+						sys.exit()
+			self.screen.fill(self.black)
+			self.screen.blit(self.board.image, self.board.rect)
+			for piece in self.board.pieces:
+				self.screen.blit(piece.image, piece.rect)
+			pygame.display.flip()
+
 	def main(self):
+		print "self waiting false"
+		self.waiting = False
 		# 3 - start game loop
 		while 1:
 			# 4 - clock tick regulation (framerate)
@@ -361,6 +405,13 @@ class GameSpace(object):
 						self.currentPiece.move = False
 						if self.currentPiece.drop(False) == True:
 							print "hi2"
+							self.screen.fill(self.black)
+							self.screen.blit(self.board.image, self.board.rect)
+							for piece in self.board.pieces:
+								self.screen.blit(piece.image, piece.rect)
+							for piece in self.board.opponentpieces:
+								self.screen.blit(piece.image, piece.rect)
+							pygame.display.flip()
 							return self.currentPiece.get_coordinates()
 				if event.type == QUIT:
 					sys.exit()
@@ -380,6 +431,26 @@ class GameSpace(object):
 	def updateBoard(self, board):
 		self.board.grid = board
 		self.board.setUpOpponent()
+
+	def end(self, status):
+		filename = status+".png"
+		print filename
+		self.endimage = pygame.image.load(filename)
+		self.endrect = self.endimage.get_rect()
+		self.endrect.center = (400, 400)
+		while 1:
+			self.clock.tick(60)
+			for event in pygame.event.get():
+				if event.type == QUIT:
+						sys.exit()
+			self.screen.fill(self.black)
+			self.screen.blit(self.board.image, self.board.rect)
+			for piece in self.board.pieces:
+				self.screen.blit(piece.image, piece.rect)
+			for piece in self.board.opponentpieces:
+				self.screen.blit(piece.image, piece.rect)
+			self.screen.blit(self.endimage, self.endrect)
+			pygame.display.flip()
 
 if __name__ == '__main__':
 	pass

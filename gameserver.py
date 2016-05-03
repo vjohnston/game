@@ -41,6 +41,7 @@ class SecondConnection(Protocol):
 
 	def dataReceived(self, data_string):
 		data = pickle.loads(data_string)
+		print data_string
 		if isinstance(data[0], list):
 			# set up players 1 positions on board
 			# if a Square has a value 0, that spot is empty
@@ -59,7 +60,8 @@ class SecondConnection(Protocol):
 		elif type(data[0]) is tuple:
 			if self.mainconnection.board[data[1][0]][data[1][1]].player == 1:
 				fight_status = self.mainconnection.fight(data[0],data[1])
-				print fight_status
+				if fight_status == "EOG":
+					self.mainconnection.endGame(2)
 			else:
 				self.mainconnection.board[data[1][0]][data[1][1]] = self.mainconnection.board[data[0][0]][data[0][1]]
 				self.mainconnection.board[data[0][0]][data[0][1]] = Square()
@@ -128,7 +130,8 @@ class MainConnection(Protocol):
 			print "data", data
 			if self.board[data[1][0]][data[1][1]].player == 2:
 				fight_status = self.fight(data[0],data[1])
-				print fight_status
+				if fight_status == "EOG":
+					self.endGame(1)
 			else:
 				# just a regular move
 				print data
@@ -156,8 +159,7 @@ class MainConnection(Protocol):
 		# deal with special cases
 		# if attacker is a spy and defender is a marshall 
 		if defending_value == 'f':
-			print "END OF GAME"
-			reactor.stop()
+			return "EOG"
 		elif attacking_value == 's' and defending_value == "1":
 			self.board[defender[0]][defender[1]] = self.board[attacker[0]][attacker[1]]
 			self.board[attacker[0]][attacker[1]] = Square()
@@ -192,6 +194,14 @@ class MainConnection(Protocol):
 			self.board[attacker[0]][attacker[1]] = Square()
 			return "tie" # both of them lose
 
+	def endGame(self, winner):
+		if winner == 1:
+			self.transport.write("win")
+			self.secondplayer.transport.write("lose")
+		else:
+			self.transpot.write("lose")
+			self.secondplayer.transport.write("win")
+		#reactor.stop()
 
 	def startGame(self):
 		self.turn = 1 # keep track of which players turn it is
