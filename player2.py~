@@ -5,7 +5,7 @@ from twisted.internet.protocol import ClientFactory
 import cPickle as pickle
 from display import GameSpace
 
-PLAYER_TWO_PORT = 32016
+PLAYER_TWO_PORT = 32026
 
 # This class represents one square on the board. It stores the value of the Square and which players Square it is
 class Square:
@@ -13,13 +13,6 @@ class Square:
 	def __init__(self, value=0, player=0):
 		self.value = value
 		self.player = player
-
-	# returns true if the spot does not have a Square on it, false otherwise
-	def isEmpty(self):
-		if self.player != 0:
-			return false
-		else:
-			return true
 
 class PlayerConnection(Protocol):
 	def connectionMade(self):
@@ -64,6 +57,7 @@ class PlayerConnection(Protocol):
 		self.turn = 0
 
 	def connectionLost(self, reason):
+		self.gs.exit()
 		reactor.stop()
 
 class PlayerConnectionFactory(ClientFactory):
