@@ -3,10 +3,20 @@ Victoria Johnston
 CSE30332 - McMillan
 Spring 2016 
 
-Overview of Game:
+
+#####################
+Overview
+#####################
+
+We present a simplified version of the popular strategy board game, Stratego. In this game there are two players, each with 10 pieces. One of these pieces is a flag and it is the goal of each player to discover their opponent's flag. Players are only able to see the their pieces
 
 
-How to Setup:
+
+
+#####################
+Setup
+#####################
+
  1. Start Gameserver
    [student00]$ python gameserver.py
  2. Start Player1
@@ -15,4 +25,6 @@ How to Setup:
    [student02]$ python player2.py
 
 
-How to Play:
+#####################
+Gameplay
+#####################

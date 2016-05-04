@@ -111,6 +111,7 @@ class Board(pygame.sprite.Sprite):
 					print spot.value, xLoc, yLoc
 					opponent = Piece(xLoc*80+40, yLoc*80+40, "pieces/BLANKred.png", 'f', self)
 					self.opponentpieces.append(opponent)
+
 		# check if any pieces have been removed
 		i = 0
 		for piece in self.pieces:
@@ -263,7 +264,7 @@ class Piece(pygame.sprite.Sprite):
 		# check if a Square is already in that position
 		old_pos_player = self.board.grid[self.yLocPrev-1][self.xLocPrev-1].player
 		new_pos_player = self.board.grid[self.yLoc-1][self.xLoc-1].player
-		print "player", self.board.grid[self.yLoc-1][self.xLoc-1].player
+		print "old", self.board.grid[self.yLocPrev-1][self.xLocPrev-1].player,"new", self.board.grid[self.yLoc-1][self.xLoc-1].player
 		if new_pos_player == old_pos_player:
 			#self.xLoc = self.xLocPrev
 			#self.yLoc = self.yLocPrev
@@ -294,7 +295,7 @@ class Piece(pygame.sprite.Sprite):
 
 class StartButton(pygame.sprite.Sprite):
 	def __init__(self):
-		self.image = pygame.image.load("ready.png")
+		self.image = pygame.image.load("images/ready.png")
 		self.rect = self.image.get_rect()
 		self.rect.center = (400, 400)
 
@@ -315,7 +316,7 @@ class GameSpace(object):
 		self.screen = pygame.display.set_mode(self.size)
 
 		self.player = player
-		self.board = Board(10, 10, "boardV5.png", self.player, self)
+		self.board = Board(10, 10, "images/board.png", self.player, self)
 		self.startbutton = StartButton()
 		self.showstart = False
 
@@ -433,7 +434,7 @@ class GameSpace(object):
 		self.board.setUpOpponent()
 
 	def end(self, status):
-		filename = status+".png"
+		filename = "images" + status + ".png"
 		print filename
 		self.endimage = pygame.image.load(filename)
 		self.endrect = self.endimage.get_rect()

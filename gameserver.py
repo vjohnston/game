@@ -58,6 +58,7 @@ class SecondConnection(Protocol):
 				self.mainconnection.startGame()
 
 		elif type(data[0]) is tuple:
+			fight_status = ""
 			if self.mainconnection.board[data[1][0]][data[1][1]].player == 1:
 				fight_status = self.mainconnection.fight(data[0],data[1])
 				if fight_status == "EOG":
@@ -145,6 +146,7 @@ class MainConnection(Protocol):
 			board_string = pickle.dumps(self.board)
 			self.secondplayer.transport.write(board_string)
 			self.transport.write(board_string)
+
 			# change turn
 			self.secondplayer.transport.write('turn')
 			print "player 1 end of turn"
