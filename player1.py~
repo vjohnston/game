@@ -61,7 +61,6 @@ class PlayerConnection(Protocol):
 		self.turn = 0
 
 	def connectionLost(self, reason):
-		self.gs.exit()
 		reactor.stop()
 
 class PlayerConnectionFactory(ClientFactory):

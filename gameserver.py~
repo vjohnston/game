@@ -75,7 +75,7 @@ class SecondConnection(Protocol):
 
 	def connectionLost(self, reason):
 		print "player 2 connection lost"
-		self.mainconnection.transport.loseConnection()
+		self.mainconnection.loseConnection()
 
 class SecondConnectionFactory(Factory):
 	def __init__(self, mainconnection):
@@ -207,7 +207,7 @@ class MainConnection(Protocol):
 
 	def connectionLost(self, reason):
 		print "gameserver connection lost"
-		self.secondplayer.transport.loseConnection()
+		self.secondplayer.loseConnection()
 
 	
 class MainConnectionFactory(Factory):

@@ -71,7 +71,7 @@ class Board(pygame.sprite.Sprite):
 				print movePiece.name , piece.name , movePiece.xLoc , piece.xLoc , movePiece.yLoc , piece.yLoc 
 				if movePiece.name != piece.name and movePiece.xLoc == piece.xLoc and movePiece.yLoc == piece.yLoc:
 					return False
-				elif movePiece.name == piece.name and movePiece.xLoc == piece.xLoc and movePiece.yLoc == piece.yLoc and movePiece.xHome != piece.xHome:
+				elif movePiece.name == piece.name and movePiece.xLoc == piece.xLoc and movePiece.yLoc == piece.yLoc:
 					return False
 			if movePiece.yLoc < 6 or movePiece.yLoc > 8 or movePiece.xLoc < 1 or movePiece.xLoc > 8:
 				return False
